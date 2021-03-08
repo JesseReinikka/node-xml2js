@@ -19,3 +19,4 @@ exports.Parser = parser.Parser
 
 exports.parseString = parser.parseString
 exports.parseStringPromise = parser.parseStringPromise
+exports.parseStringSync = parser.parseStringSync

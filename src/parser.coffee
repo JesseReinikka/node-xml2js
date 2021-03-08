@@ -256,6 +256,20 @@ class exports.Parser extends events
       else if @saxParser.ended
         throw err
 
+  parseStringSync: (str) =>
+    # SAX events block when given a string instead of a stream
+    result = undefined
+    err = undefined
+    cb = (_err, _result) ->
+      result = _result
+      err = _err
+
+    # parseString will implicitly call cb (thus setting closure result) before returning
+    @parseString str, cb
+    if err
+      throw err
+    result
+
   parseStringPromise: (str) =>
     new Promise (resolve, reject) =>
       @parseString str, (err, value) =>
@@ -288,3 +302,10 @@ exports.parseStringPromise = (str, a) ->
 
   parser = new exports.Parser options
   parser.parseStringPromise str
+
+exports.parseStringSync = (str, a) ->
+  if typeof a == 'object'
+    options = a
+
+  parser = new exports.Parser options
+  parser.parseStringSync str
