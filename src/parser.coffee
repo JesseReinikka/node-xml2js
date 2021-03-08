@@ -15,7 +15,7 @@ processItem = (processors, item, key) ->
   item = process(item, key) for process in processors
   return item
 
-class exports.Parser extends events.EventEmitter
+class exports.Parser extends events
   constructor: (opts) ->
     # if this was called without 'new', create an instance with new and return
     return new exports.Parser opts unless @ instanceof exports.Parser
@@ -145,7 +145,10 @@ class exports.Parser extends events.EventEmitter
           obj = obj[charkey]
 
       if (isEmpty obj)
-        obj = if @options.emptyTag != '' then @options.emptyTag else emptyStr
+        if typeof @options.emptyTag == 'function'
+          obj = @options.emptyTag()
+        else
+          obj = if @options.emptyTag != '' then @options.emptyTag else emptyStr
 
       if @options.validator?
         xpath = "/" + (node["#name"] for node in stack).concat(nodeName).join("/")
@@ -253,6 +256,14 @@ class exports.Parser extends events.EventEmitter
       else if @saxParser.ended
         throw err
 
+  parseStringPromise: (str) =>
+    new Promise (resolve, reject) =>
+      @parseString str, (err, value) =>
+        if err
+          reject err
+        else
+          resolve value
+
 exports.parseString = (str, a, b) ->
   # let's determine what we got as arguments
   if b?
@@ -270,3 +281,10 @@ exports.parseString = (str, a, b) ->
   # the rest is super-easy
   parser = new exports.Parser options
   parser.parseString str, cb
+
+exports.parseStringPromise = (str, a) ->
+  if typeof a == 'object'
+    options = a
+
+  parser = new exports.Parser options
+  parser.parseStringPromise str
